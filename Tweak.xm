@@ -2,6 +2,11 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
+// 函数原型声明
+static void toggleFloatingBall(void);
+static void hideFloatingBall(void);
+static void showFloatingBall(void);
+
 // 手势处理辅助类
 @interface FBHGestureHandler : NSObject
 + (void)handleTap:(UITapGestureRecognizer *)gesture;
