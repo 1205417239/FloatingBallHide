@@ -10,6 +10,11 @@ static CGRect g_savedFrame;
 static dispatch_source_t g_hideTimer = nil;
 static UITapGestureRecognizer *g_threeFingerTap = nil;
 
+// 函数原型声明
+static void showFloatingBall(void);
+static void hideFloatingBall(void);
+static void startHideTimer(void);
+
 // 手势处理辅助类
 @interface FBHGestureHandler : NSObject
 + (void)handleTap:(UITapGestureRecognizer *)gesture;
