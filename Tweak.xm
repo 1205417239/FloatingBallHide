@@ -3,11 +3,27 @@
 #import <objc/runtime.h>
 
 // 全局状态
-static BOOL g_ballHidden = NO;
+static BOOL g_ballHidden = YES;  // 默认隐藏
 static UIView *g_savedBall = nil;
 static UIView *g_savedSuperview = nil;
 static CGRect g_savedFrame;
 static dispatch_source_t g_hideTimer = nil;
+static UITapGestureRecognizer *g_threeFingerTap = nil;
+
+// 手势处理辅助类
+@interface FBHGestureHandler : NSObject
++ (void)handleTap:(UITapGestureRecognizer *)gesture;
+@end
+
+@implementation FBHGestureHandler
++ (void)handleTap:(UITapGestureRecognizer *)gesture {
+    if (gesture.state == UIGestureRecognizerStateRecognized) {
+        NSLog(@"[FBH] 三指点击4次触发，呼出悬浮球");
+        showFloatingBall();
+        startHideTimer();
+    }
+}
+@end
 
 // 获取 keyWindow
 static UIWindow *getKeyWindow(void) {
@@ -49,6 +65,7 @@ static void hideFloatingBall(void) {
         g_savedFrame = ball.frame;
         [ball removeFromSuperview];
         g_ballHidden = YES;
+        NSLog(@"[FBH] 悬浮球已隐藏");
     }
 }
 
@@ -60,6 +77,7 @@ static void showFloatingBall(void) {
         [g_savedSuperview addSubview:g_savedBall];
         [g_savedSuperview bringSubviewToFront:g_savedBall];
         g_ballHidden = NO;
+        NSLog(@"[FBH] 悬浮球已显示");
     } else {
         UIView *ball = findFloatingBallInAllWindows();
         if (ball) {
@@ -83,32 +101,36 @@ static void startHideTimer(void) {
     dispatch_resume(g_hideTimer);
 }
 
-// 用户有操作时调用：显示悬浮球 + 重置计时器
-static void onUserActivity(void) {
-    showFloatingBall();
-    startHideTimer();
+// 安装三指点击4次手势
+static void installGesture(void) {
+    if (g_threeFingerTap) return;
+    UIWindow *window = getKeyWindow();
+    if (!window) return;
+    
+    g_threeFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:[FBHGestureHandler class] action:@selector(handleTap:)];
+    g_threeFingerTap.numberOfTouchesRequired = 3;
+    g_threeFingerTap.numberOfTapsRequired = 4;
+    g_threeFingerTap.cancelsTouchesInView = NO;
+    g_threeFingerTap.delaysTouchesBegan = NO;
+    g_threeFingerTap.delaysTouchesEnded = NO;
+    
+    [window addGestureRecognizer:g_threeFingerTap];
+    NSLog(@"[FBH] 三指点击4次手势已安装");
 }
-
-// Hook UIApplication 监听所有触摸事件
-%hook UIApplication
-
-- (void)sendEvent:(UIEvent *)event {
-    %orig;
-    if (event.type == UIEventTypeTouches) {
-        onUserActivity();
-    }
-}
-
-%end
 
 // 构造函数
 __attribute__((constructor))
 static void initialize(void) {
     NSLog(@"[FBH] 悬浮球自动隐藏dylib已加载");
     dispatch_async(dispatch_get_main_queue(), ^{
-        // 启动后延迟2秒开始计时（等待悬浮球创建）
+        // 延迟2秒，等待悬浮球创建后隐藏
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            startHideTimer();
+            hideFloatingBall();
+            installGesture();
+        });
+        // 再延迟3秒确保隐藏
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            hideFloatingBall();
         });
     });
 }
