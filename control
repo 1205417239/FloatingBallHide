@@ -1,0 +1,9 @@
+Package: com.floatingball.hide
+Name: FloatingBallHide
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: 隐藏老贝贝悬浮球，三指点击4次呼出
+Maintainer: User
+Author: User
+Section: Tweaks
+Depends: mobilesubstrate
