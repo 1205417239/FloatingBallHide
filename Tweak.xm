@@ -2,6 +2,14 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
+// 全局状态（必须在类定义之前）
+static BOOL g_ballHidden = YES;  // 默认隐藏
+static UITapGestureRecognizer *g_threeFingerTap = nil;
+static UIView *g_switchRow = nil;
+static UIView *g_savedBall = nil;       // 保存悬浮球实例
+static UIView *g_savedSuperview = nil;  // 保存悬浮球的父视图
+static CGRect g_savedFrame;              // 保存悬浮球的frame
+
 // 函数原型声明
 static void toggleFloatingBall(void);
 static void hideFloatingBall(void);
@@ -42,14 +50,6 @@ static void addHideSwitchToView(UIView *view);
     }
 }
 @end
-
-// 全局状态
-static BOOL g_ballHidden = YES;  // 默认隐藏
-static UITapGestureRecognizer *g_threeFingerTap = nil;
-static UIView *g_switchRow = nil;
-static UIView *g_savedBall = nil;       // 保存悬浮球实例
-static UIView *g_savedSuperview = nil;  // 保存悬浮球的父视图
-static CGRect g_savedFrame;              // 保存悬浮球的frame
 
 // 获取 keyWindow
 static UIWindow *getKeyWindow(void) {
